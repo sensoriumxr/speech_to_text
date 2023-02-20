@@ -107,7 +107,11 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
         case SwiftSpeechToTextMethods.has_permission.rawValue:
             hasPermission( result )
         case SwiftSpeechToTextMethods.initialize.rawValue:
-            initialize( result )
+            let audioThread = Thread {
+                self.initialize(result)
+            }
+            audioThread.start()
+            
         case SwiftSpeechToTextMethods.listen.rawValue:
             guard let argsArr = call.arguments as? Dictionary<String,AnyObject>,
                 let partialResults = argsArr["partialResults"] as? Bool, let onDevice = argsArr["onDevice"] as? Bool, let listenModeIndex = argsArr["listenMode"] as? Int, let sampleRate = argsArr["sampleRate"] as? Int
@@ -132,11 +136,23 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
                 return
             }
             
-            listenForSpeech( result, localeStr: localeStr, partialResults: partialResults, onDevice: onDevice, listenMode: listenMode, sampleRate: sampleRate )
+            let audioThread = Thread {
+                self.listenForSpeech( result, localeStr: localeStr, partialResults: partialResults, onDevice: onDevice, listenMode: listenMode, sampleRate: sampleRate )
+            }
+            audioThread.start()
+            
         case SwiftSpeechToTextMethods.stop.rawValue:
-            stopSpeech( result )
+            let audioThread = Thread {
+                self.stopSpeech(result)
+            }
+            audioThread.start()
+           
         case SwiftSpeechToTextMethods.cancel.rawValue:
-            cancelSpeech( result )
+            let audioThread = Thread {
+                self.cancelSpeech(result)
+            }
+            audioThread.start()
+            
         case SwiftSpeechToTextMethods.locales.rawValue:
             locales( result )
         default:
