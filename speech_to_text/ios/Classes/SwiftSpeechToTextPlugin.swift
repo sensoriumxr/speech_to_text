@@ -107,7 +107,10 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
         case SwiftSpeechToTextMethods.has_permission.rawValue:
             hasPermission( result )
         case SwiftSpeechToTextMethods.initialize.rawValue:
-            initialize( result )
+            startOnThread {
+                self.initialize(result)
+            }
+            
         case SwiftSpeechToTextMethods.listen.rawValue:
             guard let argsArr = call.arguments as? Dictionary<String,AnyObject>,
                 let partialResults = argsArr["partialResults"] as? Bool, let onDevice = argsArr["onDevice"] as? Bool, let listenModeIndex = argsArr["listenMode"] as? Int, let sampleRate = argsArr["sampleRate"] as? Int
@@ -132,11 +135,19 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
                 return
             }
             
-            listenForSpeech( result, localeStr: localeStr, partialResults: partialResults, onDevice: onDevice, listenMode: listenMode, sampleRate: sampleRate )
+            startOnThread {
+                self.listenForSpeech( result, localeStr: localeStr, partialResults: partialResults, onDevice: onDevice, listenMode: listenMode, sampleRate: sampleRate )
+            }
+            
         case SwiftSpeechToTextMethods.stop.rawValue:
-            stopSpeech( result )
+            startOnThread {
+                self.stopSpeech(result)
+            }
+           
         case SwiftSpeechToTextMethods.cancel.rawValue:
-            cancelSpeech( result )
+            startOnThread {
+                self.cancelSpeech(result)
+            }
         case SwiftSpeechToTextMethods.locales.rawValue:
             locales( result )
         default:
@@ -145,6 +156,13 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
                 result( FlutterMethodNotImplemented)
             }
         }
+    }
+    
+    private func startOnThread(_ action: @escaping () -> Void) {
+        let audioThread = Thread {
+            action()
+        }
+        audioThread.start()
     }
     
     private func hasPermission( _ result: @escaping FlutterResult) {
