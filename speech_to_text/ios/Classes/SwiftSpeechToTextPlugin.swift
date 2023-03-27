@@ -107,7 +107,7 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
         case SwiftSpeechToTextMethods.has_permission.rawValue:
             hasPermission( result )
         case SwiftSpeechToTextMethods.initialize.rawValue:
-            startOnThread {
+            runOnQueue {
                 self.initialize(result)
             }
             
@@ -135,17 +135,17 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
                 return
             }
             
-            startOnThread {
+            runOnQueue {
                 self.listenForSpeech( result, localeStr: localeStr, partialResults: partialResults, onDevice: onDevice, listenMode: listenMode, sampleRate: sampleRate )
             }
             
         case SwiftSpeechToTextMethods.stop.rawValue:
-            startOnThread {
+            runOnQueue {
                 self.stopSpeech(result)
             }
            
         case SwiftSpeechToTextMethods.cancel.rawValue:
-            startOnThread {
+            runOnQueue {
                 self.cancelSpeech(result)
             }
         case SwiftSpeechToTextMethods.locales.rawValue:
@@ -157,12 +157,13 @@ public class SwiftSpeechToTextPlugin: NSObject, FlutterPlugin {
             }
         }
     }
+
+    let userInitiatedQueue = DispatchQueue.global(qos: .userInitiated)
     
-    private func startOnThread(_ action: @escaping () -> Void) {
-        let audioThread = Thread {
+    private func runOnQueue(_ action: @escaping () -> Void) {
+        userInitiatedQueue.async {
             action()
         }
-        audioThread.start()
     }
     
     private func hasPermission( _ result: @escaping FlutterResult) {
